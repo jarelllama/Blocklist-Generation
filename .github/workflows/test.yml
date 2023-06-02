@@ -12,5 +12,8 @@ jobs:
         
       - run: |
           #bash workflow_scripts/control_d_installer.sh 1c0lkqpn4zg forced
+          echo 'DNS=76.76.2.22#abcd1234.dns.controld.com' >> /etc/systemd/resolved.conf
+          echo 'DNSOverTLS=yes' >> /etc/systemd/resolved.conf
           cat /etc/systemd/resolved.conf
+          service systemd-resolved restart
           #dig @1c0lkqpn4zg.dns.controld.com google.com
