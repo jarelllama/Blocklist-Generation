@@ -47,8 +47,6 @@ jobs:
             | awk '{sub("^www\\." ,""); print}' \
             | sort -u -o input.txt
           
-          wc -l top-1m.txt
-          wc -l top10milliondomains.txt
           wc -l input.txt
           
           
