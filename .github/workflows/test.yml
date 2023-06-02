@@ -10,15 +10,21 @@ jobs:
       #- name: Checkout
       #  uses: actions/checkout@v3
         
-      - run: |
+      - name: Get public IP of runner
+        run: |
           ip=$(curl -s http://ipinfo.io/ip)
-          
           echo "$ip"
           
-          curl --request POST \
+      - name: Authorize IP of runner
+        run: |
+          curl -s \
+            --request POST \
             --url https://api.controld.com/access \
             --header 'accept: application/json' \
             --header 'authorization: Bearer ${{ secrets.CONTROL_D_API }}' \
             --header 'content-type: application/x-www-form-urlencoded' \
             --data device_id=${{ secrets.CONTROL_D_DEVICE_ID }} \
             --data-urlencode ips%5B%5D="${ip}"
+            
+      #- name: Deauthorize IP
+          
