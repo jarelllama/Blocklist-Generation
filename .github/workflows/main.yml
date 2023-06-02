@@ -1,0 +1,29 @@
+name: Build Control D AI Malware Blocklist
+#run-name:
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Provide Git identity
+        run: |
+          git config user.email ${{ vars.GIT_EMAIL }}
+          git config user.name ${{ vars.GIT_USERNAME }}
+  
+      - name: Install Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10' 
+          
+      - name: Check Python install
+        run: |
+          python --version
+          pip3 --version
+          
+          
+          
