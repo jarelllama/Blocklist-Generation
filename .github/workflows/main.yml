@@ -28,6 +28,7 @@ jobs:
       - name: Merge lists
         run: |
           cut -d ',' -f 2 top-1m.csv > top-1m.txt
+          
           tail -n +2 top10milliondomains.csv \
             | cut -d ',' -f 2 \
             | awk '{gsub(/"/ ,""); print}' > top10milliondomains.txt
