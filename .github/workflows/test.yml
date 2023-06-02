@@ -12,10 +12,13 @@ jobs:
         
       - run: |
           ip=$(curl -s http://ipinfo.io/ip)
+          
+          echo "$ip"
+          
           curl --request POST \
             --url https://api.controld.com/access \
             --header 'accept: application/json' \
-            --header 'authorization: Bearer "${{ secrets.control_d_api }}"' \
+            --header 'authorization: Bearer "${{ secrets.CONTROL_D_API }}"' \
             --header 'content-type: application/x-www-form-urlencoded' \
-            --data device_id="${{ secrets.control_d_device_id }}" \
+            --data device_id="${{ secrets.CONTROL_D_DEVICE_ID }}" \
             --data-urlencode ips%5B%5D="${ip}"
