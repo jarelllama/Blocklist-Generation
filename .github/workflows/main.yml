@@ -39,8 +39,8 @@ jobs:
             exit 1
           fi
           
-          awk '{sub("^www\\." ,""); print}' input.txt > 1.tmp
-          mv 1.tmp input.txt
+          #awk '{sub("^www\\." ,""); print}' input.txt > 1.tmp
+          #mv 1.tmp input.txt
           
           sort -u input.txt -o input.txt
           
