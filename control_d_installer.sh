@@ -12,9 +12,9 @@ _/ ___\   __\_  __ \  |   / __ |
 EOF
 
 # Check for root/system permissions
-if command -v id >/dev/null 2>&1; then
-  [ "$(id -u)" -eq 0 ] || { echo "Please re-run this command with root/system permissions."; exit 1; }
-fi
+#if command -v id >/dev/null 2>&1; then
+#  [ "$(id -u)" -eq 0 ] || { echo "Please re-run this command with root/system permissions."; exit 1; }
+#fi
 
 # Detect OS and architecture
 OS=""
