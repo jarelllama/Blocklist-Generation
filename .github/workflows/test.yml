@@ -7,7 +7,9 @@ jobs:
   job:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        
       - run: |
-          id
-          sh -c 'sh -c "$(curl -sL https://api.controld.com/dl)" -s 1c0lkqpn4zg  forced'
-          #dig @1c0lkqpn4zg.dns.controld.com google.com
+          bash workflow_scripts/control_d_installer.sh
+          dig @1c0lkqpn4zg.dns.controld.com google.com
