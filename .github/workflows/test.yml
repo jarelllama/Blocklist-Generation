@@ -1,0 +1,11 @@
+name: Test Workflow
+#run-name:
+on:
+  workflow_dispatch:
+
+jobs:
+  job:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          dig @1c0lkqpn4zg.dns.controld.com google.com
