@@ -11,5 +11,5 @@ jobs:
         uses: actions/checkout@v3
         
       - run: |
-          bash workflow_scripts/control_d_installer.sh -s 1c0lkqpn4zg forced
+          bash workflow_scripts/control_d_installer.sh 1c0lkqpn4zg forced
           dig @1c0lkqpn4zg.dns.controld.com google.com
