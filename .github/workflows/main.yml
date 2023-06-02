@@ -34,6 +34,7 @@ jobs:
             | sed 's/\r//' > top-1m.txt
           
           # Format DomCop TOP10M
+          # Remove header
           # Remove double quotes
           tail -n +2 top10milliondomains.csv \
             | cut -d ',' -f 2 \
