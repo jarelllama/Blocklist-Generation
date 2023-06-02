@@ -34,7 +34,6 @@ jobs:
             | sed 's/\r//' > top-1m.txt
           
           # Format DomCop TOP10M
-          # Remove header and first 1000 domains
           # Remove double quotes
           tail -n +2 top10milliondomains.csv \
             | cut -d ',' -f 2 \
@@ -45,10 +44,10 @@ jobs:
           sort -u input.txt -o input.txt
 
           # Remove top domains
-          head -n 1000 top-1m.txt > top1000.txt  
-          head -n 1000 top10milliondomains.txt >> top1000.txt
-          sort -u top1000.txt -o top1000.txt
-          comm -23 input.txt top1000.txt > input.tmp
+          head -n 1000 top-1m.txt > top_slds.txt
+          head -n 1000 top10milliondomains.txt >> top_slds.txt
+          sort -u top_slds.txt -o top_slds.txt
+          comm -23 input.txt top_slds.txt > input.tmp
           mv input.tmp input.txt
 
           # Filter out .gov and .edu TLDs
@@ -60,7 +59,7 @@ jobs:
           # Remove domains with common SLDs
           while read -r entry; do
             grep "\.${entry}$" input.txt >> white_slds.txt || true
-          done < top1000.txt
+          done < top_slds.txt
           grep -vxFf white_slds.txt input.txt > input.tmp
           mv input.tmp input.txt
           
