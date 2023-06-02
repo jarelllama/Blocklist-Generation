@@ -15,15 +15,16 @@ jobs:
           git config user.email ${{ vars.GIT_EMAIL }}
           git config user.name ${{ vars.GIT_USERNAME }}
   
-      - name: Install Python 3.10
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10' 
-          
-      - name: Check Python install
+      - name: Download Tranco TOP1M
         run: |
-          python --version
-          pip3 --version
+          curl -O https://tranco-list.eu/top-1m.csv.zip
+          unzip top-1m.csv.zip
+          ls
+          
+      
+        
+          
+
           
           
           
