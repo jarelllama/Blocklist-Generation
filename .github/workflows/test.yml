@@ -18,7 +18,7 @@ jobs:
           curl --request POST \
             --url https://api.controld.com/access \
             --header 'accept: application/json' \
-            --header 'authorization: Bearer "${{ secrets.CONTROL_D_API }}"' \
+            --header 'authorization: Bearer ${{ secrets.CONTROL_D_API }}' \
             --header 'content-type: application/x-www-form-urlencoded' \
-            --data device_id="${{ secrets.CONTROL_D_DEVICE_ID }}" \
+            --data device_id=${{ secrets.CONTROL_D_DEVICE_ID }} \
             --data-urlencode ips%5B%5D="${ip}"
