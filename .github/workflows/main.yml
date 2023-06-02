@@ -28,22 +28,22 @@ jobs:
       - name: Format and merge lists
         run: |
           # Remove first 1000 domains
+          # Output domain column
+          # Remove carriage return/CRLF
           tail -n +1001 top-1m.csv \
-            # Output domain column
             | cut -d ',' -f 2 \
-            # Remove carriage return/CRLF
             | sed 's/\r//' > top-1m.txt
           
           # Remove header and first 1000 domains
+          # Remove double quotes
           tail -n +1002 top10milliondomains.csv \
             | cut -d ',' -f 2 \
-            # Remove double quotes
             | awk '{gsub(/"/ ,""); print}' > top10milliondomains.txt
             
+          # Filter out .gov and .edu TLDs
+          # Remove www subdomain
           cat top-1m.txt top10milliondomains.txt \
-            # Filter out .gov and .edu TLDs
             | grep -vE '\.(gov|edu)(\.[a-z]{2})?$' \
-            # Remove www subdomain
             | awk '{sub("^www\\." ,""); print}' \
             | sort -u -o input.txt
           
