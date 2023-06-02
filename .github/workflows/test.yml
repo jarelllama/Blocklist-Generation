@@ -7,13 +7,15 @@ jobs:
   job:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      #- name: Checkout
+      #  uses: actions/checkout@v3
         
       - run: |
-          #bash workflow_scripts/control_d_installer.sh 1c0lkqpn4zg forced
-          echo 'DNS=76.76.2.22#abcd1234.dns.controld.com' >> /etc/systemd/resolved.conf
-          echo 'DNSOverTLS=yes' >> /etc/systemd/resolved.conf
-          cat /etc/systemd/resolved.conf
-          service systemd-resolved restart
-          #dig @1c0lkqpn4zg.dns.controld.com google.com
+          ip=$(curl -s http://ipinfo.io/ip)
+          curl --request POST \
+            --url https://api.controld.com/access \
+            --header 'accept: application/json' \
+            --header 'authorization: Bearer "${{ secrets.control_d_api }}"' \
+            --header 'content-type: application/x-www-form-urlencoded' \
+            --data device_id="${{ secrets.control_d_device_id }}" \
+            --data-urlencode ips%5B%5D="${ip}"
