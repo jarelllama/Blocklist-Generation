@@ -25,9 +25,13 @@ jobs:
           wget https://www.domcop.com/files/top/top10milliondomains.csv.zip
           unzip top10milliondomains.csv.zip
           
-      - name: Merge lists
+      - name: Format and merge lists
         run: |
           cut -d ',' -f 2 top-1m.csv > top-1m.txt
+          
+          # Remove carraige return/CRLF line terminators
+          sed 's/\r//' top-1m.txt > top-1m.txt.tmp
+          mv top-1m.txt.tmp top-1m.txt
           
           tail -n +2 top10milliondomains.csv \
             | cut -d ',' -f 2 \
