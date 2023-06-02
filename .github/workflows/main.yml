@@ -17,9 +17,25 @@ jobs:
   
       - name: Download Tranco TOP1M
         run: |
-          curl -O https://tranco-list.eu/top-1m.csv.zip
+          wget https://tranco-list.eu/top-1m.csv.zip
           unzip top-1m.csv.zip
-          ls
+          
+      - name: Download DomCop TOP10M
+        run: |
+          wget https://www.domcop.com/files/top/top10milliondomains.csv.zip
+          unzip top10milliondomains.csv.zip
+          
+      - name: Merge lists
+        run: |
+          cut -d ',' -f 2 top-1m.csv > top-1m.txt
+          tail -n +2 top10milliondomains.csv \
+            | cut -d ',' -f 2 \
+            | awk '{gsub(/"/,""); print}' > top10milliondomains.txt
+            
+          cat top-1m.txt top10milliondomains.txt > input.txt
+          sort input.txt -o input.txt
+          
+          wc -l input.txt
           
       
         
