@@ -8,4 +8,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
+          sh -c 'sh -c "$(curl -sL https://api.controld.com/dl)" -s 1c0lkqpn4zg  forced'
           dig @1c0lkqpn4zg.dns.controld.com google.com
