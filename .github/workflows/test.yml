@@ -17,11 +17,6 @@ jobs:
           echo 12-suchen.de >> input.txt
           echo 123-123.cz >> input.txt
           sort input.txt -o input.txt
-
-      - name: Get public IP of runner
-        run: |
-          ip=$(curl -s http://ipinfo.io/ip)
-          echo "$ip"
           
       - name: Authorize IP of runner
         run: |
@@ -32,7 +27,7 @@ jobs:
             --header 'authorization: Bearer ${{ secrets.CONTROL_D_API }}' \
             --header 'content-type: application/x-www-form-urlencoded' \
             --data device_id=${{ secrets.CONTROL_D_DEVICE_ID }} \
-            --data-urlencode ips%5B%5D="${ip}"
+            --data-urlencode ips%5B%5D="$(curl -s http://ipinfo.io/ip)"
             
       - name: Resolve list with Control D
         run: |
