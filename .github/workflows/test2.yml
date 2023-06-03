@@ -1,0 +1,14 @@
+name: Test Workflow
+#run-name:
+on:
+  workflow_dispatch:
+
+jobs:
+  job:
+    runs-on: ubuntu-latest
+    steps:
+      - run: var1=var1
+      - run: echo $var1
+      
+      - run: ${{ vars.VAR2 }}=var2
+      - run: echo ${{ vars.VAR2 }}
