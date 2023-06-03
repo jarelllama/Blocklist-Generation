@@ -11,12 +11,11 @@ jobs:
         run: |
           wget https://tranco-list.eu/top-1m.csv.zip
           unzip top-1m.csv.zip
-          head -n 2000 top-1m.csv \
+          head -n 1000 top-1m.csv \
             | cut -d ',' -f 2 \
             | sed 's/\r//' > top-1m.txt
           sort -u top-1m.txt -o input.txt
           
-          cat input.txt
           wc -l input.txt
           
       - name: Authorize the IP of the runner
