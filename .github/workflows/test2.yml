@@ -14,7 +14,7 @@ jobs:
           head -n 500000 top-1m.csv \
             | cut -d ',' -f 2 top-1m.csv \
             | sed 's/\r//' > top-1m.txt
-          sort -u top-1m.txt -o top-1m.txt
+          sort -u top-1m.txt -o input.txt
           
       - name: Authorize the IP of the runner
         run: |
@@ -42,14 +42,9 @@ jobs:
       # TODO: consider using second DNS
       - name: Resolve domains using Control D
         run: |
-          cat input.txt | xargs -I{} -P2 bash -c '
+          cat input.txt | xargs -I{} -P8 bash -c '
             domain="$1"
-            while true; do
-              dig=$(dig +noall @${{ secrets.CONTROL_D_DNS1 }} "$domain")
-              [[ "$dig" =~ error|timed\ out ]] || break
-              echo "$domain timed out"
-              sleep 1
-            done
+            dig +noall @${{ secrets.CONTROL_D_DNS1 }} "$domain"
           ' -- {}
             
       - name: Collate domains from Control D logs
