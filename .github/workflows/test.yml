@@ -54,6 +54,8 @@ jobs:
             done
           ' -- {}
             
+      # TODO: remove redundant entries for wildcard formats
+      # TODO: sequent runs
       - name: Collate domains blocked by the AI Malware filter
         run: |
           curl -s \
@@ -64,7 +66,8 @@ jobs:
           | jq -r '.body.queries[] | select(.reason.value == "ai_malware") | .fqdn' \
           > control_d_ai_malware_blocklist.txt
           sort -u control_d_ai_malware_blocklist.txt -o control_d_ai_malware_blocklist.txt
-          wc -l control_d_ai_malware_blocklist.txt
+          
+          echo -e "\nDomains: $(wc -l < control_d_ai_malware_blocklist.txt)"
           
           # To remove
           cat control_d_ai_malware_blocklist.txt
