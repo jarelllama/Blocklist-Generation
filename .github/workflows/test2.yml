@@ -11,7 +11,7 @@ jobs:
         run: |
           wget https://tranco-list.eu/top-1m.csv.zip
           unzip top-1m.csv.zip
-          head -n 5000 top-1m.csv \
+          head -n 2000 top-1m.csv \
             | cut -d ',' -f 2 top-1m.csv \
             | sed 's/\r//' > top-1m.txt
           sort -u top-1m.txt -o input.txt
@@ -42,7 +42,7 @@ jobs:
       # TODO: consider using second DNS
       - name: Resolve domains using Control D
         run: |
-          cat input.txt | xargs -I{} -P8 bash -c '
+          cat input.txt | xargs -I{} -P2 bash -c '
             domain="$1"
             dig +noall @${{ secrets.CONTROL_D_DNS1 }} "$domain"
           ' -- {}
