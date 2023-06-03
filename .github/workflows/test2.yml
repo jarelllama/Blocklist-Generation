@@ -1,4 +1,4 @@
-name: Test Workflow
+name: Test List Generation
 #run-name:
 on:
   workflow_dispatch:
@@ -7,6 +7,85 @@ jobs:
   job:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "VARIABLE=greeen" >> "$GITHUB_ENV"
-      - run: echo "${{ env.VARIABLE }}"
+      - name: Generate sample list
+        run: |
+          wget https://tranco-list.eu/top-1m.csv.zip
+          unzip top-1m.csv.zip
+          head -n 500000 top-1m.csv \
+            | cut -d ',' -f 2 top-1m.csv \
+            | sed 's/\r//' > top-1m.txt
+          sort -u top-1m.txt -o top-1m.txt
+          
+      - name: Authorize the IP of the runner
+        run: |
+          curl -s \
+            --request POST \
+            --url https://api.controld.com/access \
+            --header 'accept: application/json' \
+            --header 'authorization: Bearer ${{ secrets.CONTROL_D_API }}' \
+            --header 'content-type: application/x-www-form-urlencoded' \
+            --data device_id=${{ secrets.CONTROL_D_DEVICE_ID }} \
+            --data-urlencode ips%5B%5D=$(curl -s http://ipinfo.io/ip)
+            
+      - name: Start DNS query logging
+        run: |
+          log_uid=$(curl -s \
+            --request POST \
+            --url https://api.controld.com/debug \
+            --header 'accept: application/json' \
+            --header 'authorization: Bearer ${{ secrets.CONTROL_D_API }}' \
+            --header 'content-type: application/x-www-form-urlencoded' \
+            --data device_id=${{ secrets.CONTROL_D_DEVICE_ID }} \
+            | jq -r '.body.uid')
+          echo "LOG_UID=${log_uid}" >> "$GITHUB_ENV"
+
+      # TODO: consider using second DNS
+      - name: Resolve domains using Control D
+        run: |
+          cat input.txt | xargs -I{} -P2 bash -c '
+            domain="$1"
+            while true; do
+              dig=$(dig +noall @${{ secrets.CONTROL_D_DNS1 }} "$domain")
+              [[ "$dig" =~ error|timed\ out ]] || break
+              echo "$domain timed out"
+              sleep 1
+            done
+          ' -- {}
+            
+      - name: Collate domains from Control D logs
+        run: |
+          curl -s \
+          --request GET \
+          --url 'https://api.controld.com/debug?uid=${{ env.LOG_UID }}' \
+          --header 'accept: application/json' \
+          --header 'authorization: Bearer ${{ secrets.CONTROL_D_API }}' \
+          | jq -r '.body.queries[].fqdn' \
+          > control_d_ai_malware_blocklist.txt
+          sort -u control_d_ai_malware_blocklist.txt -o control_d_ai_malware_blocklist.txt
+          
+          echo
+          echo "From logs: $(wc -l < control_d_ai_malware_blocklist.txt)"
+          echo
+          echo "In input but not in logs:"
+          comm -23 input.txt control_d_ai_malware_blocklist.txt
+          
+      - name: Stop DNS query logging
+        run: |
+          curl -s \
+            --request DELETE \
+            --url 'https://api.controld.com/debug?uid=${{ env.LOG_UID }}&device_id=${{ secrets.CONTROL_D_DEVICE_ID }}' \
+            --header 'accept: application/json' \
+            --header 'authorization: Bearer ${{ secrets.CONTROL_D_API }}'
+          
+      - name: Deauthorize the IP of the runner
+        run: |
+          curl -s \
+            --request DELETE   \
+            --url https://api.controld.com/access \
+            --header 'accept: application/json' \
+            --header 'authorization: Bearer ${{ secrets.CONTROL_D_API }}' \
+            --header 'content-type: application/x-www-form-urlencoded' \
+            --data device_id=${{ secrets.CONTROL_D_DEVICE_ID }} \
+            --data-urlencode ips%5B%5D=$(curl -s http://ipinfo.io/ip)
+          
     
