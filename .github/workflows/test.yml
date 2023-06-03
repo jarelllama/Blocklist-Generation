@@ -18,7 +18,7 @@ jobs:
           echo 123-123.cz >> input.txt
           sort input.txt -o input.txt
           
-      - name: Authorize IP of runner
+      - name: Authorize the IP of the runner
         run: |
           curl -s \
             --request POST \
@@ -27,9 +27,21 @@ jobs:
             --header 'authorization: Bearer ${{ secrets.CONTROL_D_API }}' \
             --header 'content-type: application/x-www-form-urlencoded' \
             --data device_id=${{ secrets.CONTROL_D_DEVICE_ID }} \
-            --data-urlencode ips%5B%5D="$(curl -s http://ipinfo.io/ip)"
+            --data-urlencode ips%5B%5D=$(curl -s http://ipinfo.io/ip)
             
-      - name: Resolve list with Control D
+      - name: Start DNS query logging
+        run: |
+          log_uid=$(curl --request POST \
+            --url https://api.controld.com/debug \
+            --header 'accept: application/json' \
+            --header 'authorization: Bearer ${{ secrets.CONTROL_D_API }}' \
+            --header 'content-type: application/x-www-form-urlencoded' \
+            --data device_id=${{ secrets.CONTROL_D_DEVICE_ID }} \
+            | jq -r '.body.uid')
+          echo "LOG_UID=${log_uid}" >> "$GITHUB_ENV"
+
+      # TODO: consider using second DNS
+      - name: Resolve domains using Control D
         run: |
           cat input.txt | xargs -I{} -P2 bash -c '
             domain="$1"
@@ -41,5 +53,29 @@ jobs:
             done
           ' -- {}
             
-      #- name: Deauthorize IP
+      - name: Collate domains blocked by the AI Malware filter
+        run: |
+          curl --request GET \
+          --url 'https://api.controld.com/debug?uid=${{ env.LOG_UID }}' \
+          --header 'accept: application/json' \
+          --header 'authorization: Bearer ${{ secrets.CONTROL_D_API }}' \
+          | jq -r '.body.queries[] | select(.reason.value == "ai_malware") | .fqdn' \
+          > control_d_ai_malware_blocklist.txt
+          sort -u control_d_ai_malware_blocklist.txt -o control_d_ai_malware_blocklist.txt
           
+      - name: Stop DNS query logging
+        run: |
+          curl --request DELETE \
+            --url 'https://api.controld.com/debug?uid=${{ env.LOG_UID }}&device_id=${{ secrets.CONTROL_D_DEVICE_ID }}' \
+            --header 'accept: application/json' \
+            --header 'authorization: Bearer ${{ secrets.CONTROL_D_API }}'
+          
+      - name: Deauthorize IP
+        run: |
+          curl --request DELETE \
+            --url https://api.controld.com/access \
+            --header 'accept: application/json' \
+            --header 'authorization: Bearer ${{ secrets.CONTROL_D_API }}' \
+            --data device_id=${{ secrets.CONTROL_D_DEVICE_ID }} 
+          
+      - run: cat control_d_ai_malware_blocklist.txt
