@@ -10,6 +10,14 @@ jobs:
       #- name: Checkout
       #  uses: actions/checkout@v3
         
+      - run: |
+          echo google.com > input.txt
+          echo 100-solarni-lampa-cz.com >> input.txt
+          echo 11trikots.com >> input.txt
+          echo 12-suchen.de >> input.txt
+          echo 123-123.cz >> input.txt
+          sort input.txt -o input.txt
+
       - name: Get public IP of runner
         run: |
           ip=$(curl -s http://ipinfo.io/ip)
@@ -25,6 +33,18 @@ jobs:
             --header 'content-type: application/x-www-form-urlencoded' \
             --data device_id=${{ secrets.CONTROL_D_DEVICE_ID }} \
             --data-urlencode ips%5B%5D="${ip}"
+            
+      - name: Resolve list with Control D
+        run: |
+          cat input.txt | xargs -I{} -P2 bash -c '
+            domain="$1"
+            while true; do
+              dig=$(dig +noall @{{ secrets.CONTROL_D_DNS1 }} "$domain")
+              [[ "$dig" =~ error|timed\ out ]] || break
+              echo "$domain timed out"
+              sleep 1
+            done
+          ' -- {}
             
       #- name: Deauthorize IP
           
