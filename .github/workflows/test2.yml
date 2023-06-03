@@ -7,8 +7,6 @@ jobs:
   job:
     runs-on: ubuntu-latest
     steps:
-      - run: var1=var1
-      - run: echo $var1
-      
-      - run: ${{ vars.VAR2 }}=var2
-      - run: echo ${{ vars.VAR2 }}
+      - run: echo "variable=greeen" >> "$GITHUB_ENV"
+      - run: echo "${{ env.VARIABLE }}"
+    
