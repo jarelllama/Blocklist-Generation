@@ -7,6 +7,6 @@ jobs:
   job:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "variable=greeen" >> "$GITHUB_ENV"
+      - run: echo "VARIABLE=greeen" >> "$GITHUB_ENV"
       - run: echo "${{ env.VARIABLE }}"
     
