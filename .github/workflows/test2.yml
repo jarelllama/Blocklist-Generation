@@ -31,6 +31,14 @@ jobs:
             
       - name: Start DNS query logging
         run: |
+          curl -s \
+            --request POST \
+            --url https://api.controld.com/debug \
+            --header 'accept: application/json' \
+            --header 'authorization: Bearer ${{ secrets.CONTROL_D_API }}' \
+            --header 'content-type: application/x-www-form-urlencoded' \
+            --data device_id=${{ secrets.CONTROL_D_DEVICE_ID }}
+            
           log_uid=$(curl -s \
             --request POST \
             --url https://api.controld.com/debug \
