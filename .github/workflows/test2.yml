@@ -11,7 +11,7 @@ jobs:
         run: |
           wget https://tranco-list.eu/top-1m.csv.zip
           unzip top-1m.csv.zip
-          head -n 2000 top-1m.csv \
+          head -n 1000 top-1m.csv \
             | cut -d ',' -f 2 \
             | sed 's/\r//' > top-1m.txt
           sort -u top-1m.txt -o input.txt
@@ -63,24 +63,31 @@ jobs:
             done
           ' -- {}
             
-      - name: Collate domains from Control D logs
+      - name: Fetch logs
         run: |
           curl -s \
           --request GET \
           --url 'https://api.controld.com/debug?uid=${{ env.LOG_UID }}' \
           --header 'accept: application/json' \
           --header 'authorization: Bearer ${{ secrets.CONTROL_D_API }}' \
-          | jq -r '.body.queries[].fqdn' \
-          > control_d_ai_malware_blocklist.txt
-          sort -u control_d_ai_malware_blocklist.txt -o control_d_ai_malware_blocklist.txt
+          > output.json
           
+      - name: Extract domains from log json
+        run: |
+          jq '.body.queries[].fqdn' output.json > all_domains.txt
+        
+          jq '.body.queries[] | select(.reason.value == "ai_malware").fqdn' output.json > blocked.txt
+        
           echo
-          echo "From logs: $(wc -l < control_d_ai_malware_blocklist.txt)"
+          echo "From logs: $(wc -l < all_domains.txt)"
           echo
           echo "In input but not in logs:"
-          comm -23 input.txt control_d_ai_malware_blocklist.txt
+          comm -23 input.txt all_domains.txt
+          echo
+          echo "Blocked:"
+          cat blocked.txt
           
-      - name: Stop DNS query logging
+      - name: Stop logging
         run: |
           curl -s \
             --request DELETE \
