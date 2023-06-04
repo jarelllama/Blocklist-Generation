@@ -47,7 +47,7 @@ jobs:
       # TODO: consider using second DNS
       - name: Resolve domains using Control D
         run: |
-          dig @${{ secrets.CONTROL_D_DNS1 }} google.com
+          dig @$76.76.2.175 google.com
         
           #cat input.txt | xargs -I{} -P2 bash -c '
           #  domain="$1"
