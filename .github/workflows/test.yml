@@ -40,6 +40,7 @@ jobs:
             --data device_id=${{ secrets.CONTROL_D_DEVICE_ID }} \
             | jq -r '.body.uid')
           echo "LOG_UID=${log_uid}" >> "$GITHUB_ENV"
+          sleep 1
 
       # TODO: consider using second DNS
       - name: Resolve domains using Control D
