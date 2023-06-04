@@ -46,8 +46,7 @@ jobs:
             --data device_id=${{ secrets.CONTROL_D_DEVICE_ID }} \
             | jq -r '.body.uid')
           echo "LOG_UID=${log_uid}" >> "$GITHUB_ENV"
-
-      # TODO: consider using second DNS
+          
       - name: Resolve domains using Control D
         run: |
           cat input.txt | xargs -I{} -P2 bash -c '
@@ -63,7 +62,7 @@ jobs:
             done
           ' -- {}
             
-      - name: Fetch logs
+      - name: Fetch the query logs
         run: |
           curl -s \
           --request GET \
@@ -72,12 +71,12 @@ jobs:
           --header 'authorization: Bearer ${{ secrets.CONTROL_D_API }}' \
           > output.json
           
-      - name: Extract domains from log json
+      - name: Extract domains from the log json
         run: |
-          jq '.body.queries[].fqdn' output.json \
+          jq -r '.body.queries[].fqdn' output.json \
             | sort -o all_domains.txt
         
-          jq '.body.queries[] | select(.reason.value == "ai_malware").fqdn' output.json \
+          jq -r '.body.queries[] | select(.reason.value == "ai_malware").fqdn' output.json \
             | sort -o blocked.txt
         
           echo
