@@ -7,6 +7,11 @@ jobs:
   job:
     runs-on: ubuntu-latest
     steps:
+      - name: Test Control D servers
+        run: |
+          dig @${{ secrets.CONTROLD_D_DNS1 }} google.com
+          dig @${{ secrets.CONTROLD_D_DNS2 }} google.com
+    
       - name: Generate sample list
         run: |
           wget https://tranco-list.eu/top-1m.csv.zip
@@ -54,9 +59,10 @@ jobs:
             domain="$1"
             while true; do
               dig=$(dig +noall @${{ secrets.CONTROL_D_DNS1 }} "$domain")
-              [[ "$dig" =~ error|timed\ out ]] || break
+              [[ "$dig" =~ error|timed\ out|no\ servers|mismatch ]] || break
+              sleep 1
               dig=$(dig +noall @${{ secrets.CONTROL_D_DNS2 }} "$domain")
-              [[ "$dig" =~ error|timed\ out ]] || break
+              [[ "$dig" =~ error|timed\ out|no\ servers|mismatch ]] || break
             done
           ' -- {}
             
