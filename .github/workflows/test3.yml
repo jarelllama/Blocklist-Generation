@@ -7,6 +7,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:    
       - run: |
-          id
-          sudo id -u
-          sh -c 'sh -c "$(curl -sL https://api.controld.com/dl)" -s ${{ secrets.CONTROL_D_DEVICE_ID }} forced'
+          sudo sh -c "$(curl -sL https://api.controld.com/dl)" -s ${{ secrets.CONTROL_D_DEVICE_ID }} forced'
+          dig reddit.com
