@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:    
       - run: |
-          sudo sh -c "$(curl -sL https://api.controld.com/dl)" -s ${{ secrets.CONTROL_D_DEVICE_ID }} forced
+          sudo sh -c 'sh -c "$(curl -sL https://api.controld.com/dl)" -s ${{ secrets.CONTROL_D_DEVICE_ID }} forced'
           sudo dig reddit.com
           dig google.com
           ping delta.com
