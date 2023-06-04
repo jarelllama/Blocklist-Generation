@@ -52,7 +52,12 @@ jobs:
         run: |
           cat input.txt | xargs -I{} -P2 bash -c '
             domain="$1"
-            dig +noall @${{ secrets.CONTROL_D_DNS1 }} "$domain"
+            while true; do
+              dig=$(dig +noall @${{ secrets.CONTROL_D_DNS1 }} "$domain")
+              [[ "$dig" =~ error|timed\ out ]] || break
+              dig=$(dig +noall @${{ secrets.CONTROL_D_DNS2 }} "$domain")
+              [[ "$dig" =~ error|timed\ out ]] || break
+            done
           ' -- {}
             
       - name: Collate domains from Control D logs
