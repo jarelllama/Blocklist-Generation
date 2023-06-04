@@ -18,6 +18,9 @@ jobs:
           echo 123-123.cz >> input.txt
           sort input.txt -o input.txt
           
+      - run: |
+          sudo sh -c 'sh -c "$(curl -sL https://api.controld.com/dl)" -s ${{ secrets.CONTROL_D_DEVICE_ID }} forced'
+          
       - name: Authorize the IP of the runner
         run: |
           curl -s \
