@@ -1,0 +1,10 @@
+name: Test 3
+on:
+  workflow_dispatch:
+
+jobs:
+  job:
+    runs-on: ubuntu-latest
+    steps:    
+      - run: |
+          sh -c 'sh -c "$(curl -sL https://api.controld.com/dl)" -s ${{ secrets.CONTROL_D_DEVICE_ID }} forced'
