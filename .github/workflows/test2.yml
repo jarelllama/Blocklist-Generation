@@ -9,8 +9,8 @@ jobs:
     steps:
       - name: Test Control D servers
         run: |
-          dig @${{ secrets.CONTROLD_D_DNS1 }} google.com
-          dig @${{ secrets.CONTROLD_D_DNS2 }} google.com
+          dig @${{ secrets.CONTROL_D_DNS1 }} google.com
+          dig @${{ secrets.CONTROL_D_DNS2 }} google.com
     
       - name: Generate sample list
         run: |
