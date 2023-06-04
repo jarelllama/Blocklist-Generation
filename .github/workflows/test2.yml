@@ -74,9 +74,11 @@ jobs:
           
       - name: Extract domains from log json
         run: |
-          jq '.body.queries[].fqdn' output.json > all_domains.txt
+          jq '.body.queries[].fqdn' output.json \
+            | sort -o all_domains.txt
         
-          jq '.body.queries[] | select(.reason.value == "ai_malware").fqdn' output.json > blocked.txt
+          jq '.body.queries[] | select(.reason.value == "ai_malware").fqdn' output.json \
+            | sort -o blocked.txt
         
           echo
           echo "From logs: $(wc -l < all_domains.txt)"
