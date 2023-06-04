@@ -31,7 +31,7 @@ jobs:
             
       - name: Start DNS query logging
         run: |
-          log_uid=$(curl -s \
+          LOG_UID=$(curl -s \
             --request POST \
             --url https://api.controld.com/debug \
             --header 'accept: application/json' \
@@ -39,7 +39,7 @@ jobs:
             --header 'content-type: application/x-www-form-urlencoded' \
             --data device_id=${{ secrets.CONTROL_D_DEVICE_ID }} \
             | jq -r '.body.uid')
-          echo "LOG_UID=${log_uid}" >> "$GITHUB_ENV"
+          echo "LOG_UID=${LOG_UID}" >> "$GITHUB_ENV"
 
       # TODO: consider using second DNS
       - name: Resolve domains using Control D
