@@ -60,9 +60,11 @@ jobs:
             while true; do
               dig=$(dig +noall @${{ secrets.CONTROL_D_DNS1 }} "$domain")
               [[ "$dig" =~ error|timed\ out|no\ servers|mismatch ]] || break
+              echo "${domain} did not resolve"
               sleep 1
               dig=$(dig +noall @${{ secrets.CONTROL_D_DNS2 }} "$domain")
               [[ "$dig" =~ error|timed\ out|no\ servers|mismatch ]] || break
+              echo "${domain} did not resolve"
             done
           ' -- {}
             
