@@ -7,6 +7,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:    
       - run: |
-          sudo sh -c 'sh -c "$(curl -sL https://api.controld.com/dl)" -s ${{ secrets.CONTROL_D_DEVICE_ID }} forced'
-          service ctrld status
+          sudo sh -c 'sh -c "$(curl -sL https://api.controld.com/dl)" -s 2c7h7bby6gb forced'
           dig reddit.com
