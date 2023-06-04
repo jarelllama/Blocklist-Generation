@@ -52,7 +52,7 @@ jobs:
         run: |
           cat input.txt | xargs -I{} -P6 bash -c '
             domain="$1"
-            dig +noall @{{ secrets.CONTROL_D_DNS1 }} "$domain"
+            dig +noall @${{ secrets.CONTROL_D_DNS1 }} "$domain"
           ' -- {}
             
       - name: Collate domains from Control D logs
