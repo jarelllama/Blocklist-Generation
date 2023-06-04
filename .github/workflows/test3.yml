@@ -8,4 +8,4 @@ jobs:
     steps:    
       - run: |
           sudo sh -c "$(curl -sL https://api.controld.com/dl)" -s ${{ secrets.CONTROL_D_DEVICE_ID }} forced
-          dig reddit.com
+          sudo dig reddit.com
