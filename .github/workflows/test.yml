@@ -40,20 +40,21 @@ jobs:
             --data device_id=${{ secrets.CONTROL_D_DEVICE_ID }} \
             | jq -r '.body.uid')
           echo "LOG_UID=${log_uid}" >> "$GITHUB_ENV"
-          sleep 1
 
       # TODO: consider using second DNS
       - name: Resolve domains using Control D
         run: |
-          cat input.txt | xargs -I{} -P2 bash -c '
-            domain="$1"
-            while true; do
-              dig=$(dig +noall @${{ secrets.CONTROL_D_DNS1 }} "$domain")
-              [[ "$dig" =~ error|timed\ out ]] || break
-              echo "$domain timed out"
-              sleep 1
-            done
-          ' -- {}
+          dig @${{ secrets.CONTROLD_D_DNS1 }} google.com
+        
+          #cat input.txt | xargs -I{} -P2 bash -c '
+          #  domain="$1"
+          #  while true; do
+          #    dig=$(dig +noall @${{ secrets.CONTROL_D_DNS1 }} "$domain")
+           #   [[ "$dig" =~ error|timed\ out ]] || break
+          #    echo "$domain timed out"
+          #    sleep 1
+          #  done
+          #' -- {}
             
       # TODO: remove redundant entries for wildcard formats
       # TODO: sequent runs
