@@ -18,7 +18,10 @@ jobs:
           
           wc -l input.txt
           
-      - run: |
+      - name: Install and set up the ctrld service
+        # Without this service logging doesn't work reliably
+        run: |
+          # Has to run as user 0
           sudo sh -c 'sh -c "$(curl -sL https://api.controld.com/dl)" -s ${{ secrets.CONTROL_D_DEVICE_ID }} forced'
           
       - name: Authorize the IP of the runner
@@ -49,7 +52,7 @@ jobs:
         run: |
           cat input.txt | xargs -I{} -P6 bash -c '
             domain="$1"
-            dig +noall @76.76.2.175 "$domain"
+            dig +noall @{{ secrets.CONTROL_D_DNS1 }} "$domain"
           ' -- {}
             
       - name: Collate domains from Control D logs
