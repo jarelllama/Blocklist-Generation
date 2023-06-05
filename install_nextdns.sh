@@ -1,5 +1,8 @@
 #!/bin/sh
 
+RUN_COMMAND=install
+PROFILE_ID="$1"
+
 main() {
     OS=$(detect_os)
     GOARCH=$(detect_goarch)
@@ -28,10 +31,27 @@ main() {
         CURRENT_RELEASE=$(get_current_release)
         log_debug "Start install loop with CURRENT_RELEASE=$CURRENT_RELEASE"
 
-        log_debug "NextDNS is not installed"
-        menu \
-            i "Install NextDNS" install \
-            e "Exit" exit
+        if [ "$CURRENT_RELEASE" ]; then
+            if ! is_version_current; then
+                log_debug "NextDNS is out of date ($CURRENT_RELEASE != $INSTALL_RELEASE)"
+                menu \
+                    u "Upgrade NextDNS from $CURRENT_RELEASE to $INSTALL_RELEASE" upgrade \
+                    c "Configure NextDNS" configure \
+                    r "Remove NextDNS" uninstall \
+                    e "Exit" exit
+            else
+                log_debug "NextDNS is up to date ($CURRENT_RELEASE)"
+                menu \
+                    c "Configure NextDNS" configure \
+                    r "Remove NextDNS" uninstall \
+                    e "Exit" exit
+            fi
+        else
+            log_debug "NextDNS is not installed"
+            menu \
+                i "Install NextDNS" install \
+                e "Exit" exit
+        fi
     done
 }
 
@@ -49,9 +69,33 @@ install() {
                 return 1
             fi
             configure
-            post_install
+            #post_install
             exit 0
         fi
+    else
+        return $?
+    fi
+}
+
+upgrade() {
+    if [ "$(get_current_release)" = "$INSTALL_RELEASE" ]; then
+        log_info "Already on the latest version"
+        return
+    fi
+    if type=$(install_type); then
+        log_info "Upgrading NextDNS..."
+        log_debug "Using $type install type"
+        "upgrade_$type"
+    else
+        return $?
+    fi
+}
+
+uninstall() {
+    if type=$(install_type); then
+        log_info "Uninstalling NextDNS..."
+        log_debug "Using $type uninstall type"
+        "uninstall_$type"
     else
         return $?
     fi
@@ -79,26 +123,28 @@ configure() {
     # Use profile from now on
     add_arg profile "$(get_profile_id)"
 
-    doc "Sending your devices name lets you filter analytics and logs by device."
-    add_arg_bool_ask report-client-info 'Report device name?' true
+    #doc "Sending your devices name lets you filter analytics and logs by device."
+    #add_arg_bool_ask report-client-info 'Report device name?' true
+    add_arg report-client-info false
 
     case $(guess_host_type) in
     router)
         add_arg setup-router true
         ;;
     unsure)
-        doc "Accept DNS request from other network hosts."
+        #doc "Accept DNS request from other network hosts."
         if [ "$(get_config_bool setup-router)" = "true" ]; then
             router_default=true
         fi
-        if [ "$(ask_bool 'Setup as a router?' $router_default)" = "true" ]; then
-            add_arg setup-router true
-        fi
+        #if [ "$(ask_bool 'Setup as a router?' $router_default)" = "true" ]; then
+            #add_arg setup-router true
+	    add_arg setup-router false
+        #fi
         ;;
     esac
 
-    doc "Make nextdns CLI cache responses. This improves latency and reduces the amount"
-    doc "of queries sent to NextDNS."
+    #doc "Make nextdns CLI cache responses. This improves latency and reduces the amount"
+    #doc "of queries sent to NextDNS."
     if [ "$(guess_host_type)" = "router" ]; then
         doc "Note that enabling this feature will disable dnsmasq for DNS to avoid double"
         doc "caching."
@@ -106,25 +152,27 @@ configure() {
     if [ "$(get_config cache-size)" != "0" ]; then
         cache_default=true
     fi
-    if [ "$(ask_bool 'Enable caching?' $cache_default)" = "true" ]; then
-        add_arg cache-size "10MB"
+    #if [ "$(ask_bool 'Enable caching?' $cache_default)" = "true" ]; then
+    #    add_arg cache-size "10MB"
 
-        doc "Instant refresh will force low TTL on responses sent to clients so they rely"
-        doc "on CLI DNS cache. This will allow changes on your NextDNS config to be applied"
-        doc "on your LAN hosts without having to wait for their cache to expire."
-        if [ "$(get_config max-ttl)" = "5s" ]; then
-            instant_refresh_default=true
-        fi
-        if [ "$(ask_bool 'Enable instant refresh?' $instant_refresh_default)" = "true" ]; then
-            add_arg max-ttl "5s"
-        fi
-    fi
+    #    doc "Instant refresh will force low TTL on responses sent to clients so they rely"
+    #    doc "on CLI DNS cache. This will allow changes on your NextDNS config to be applied"
+    #    doc "on your LAN hosts without having to wait for their cache to expire."
+    #    if [ "$(get_config max-ttl)" = "5s" ]; then
+    #        instant_refresh_default=true
+    #    fi
+    #    if [ "$(ask_bool 'Enable instant refresh?' $instant_refresh_default)" = "true" ]; then
+    #        add_arg max-ttl "5s"
+    #    fi
+    #fi
 
     if [ "$(guess_host_type)" != "router" ]; then
-        doc "Changes DNS settings of the host automatically when nextdns is started."
-        doc "If you say no here, you will have to manually configure DNS to 127.0.0.1."
-        add_arg_bool_ask auto-activate 'Automatically setup local host DNS?' true
+        #doc "Changes DNS settings of the host automatically when nextdns is started."
+        #doc "If you say no here, you will have to manually configure DNS to 127.0.0.1."
+        #add_arg_bool_ask auto-activate 'Automatically setup local host DNS?' true
+        add_arg auto-activate true
     fi
+    
     # shellcheck disable=SC2086
     asroot "$NEXTDNS_BIN" install $args
 }
@@ -178,9 +226,33 @@ install_bin() {
         asroot chmod 755 "$bin_path"
 }
 
+upgrade_bin() {
+    tmp=$NEXTDNS_BIN.tmp
+    if install_bin "$tmp"; then
+        asroot "$NEXTDNS_BIN" uninstall
+        asroot mv "$tmp" "$NEXTDNS_BIN"
+        asroot "$NEXTDNS_BIN" install
+    fi
+    log_debug "Removing spurious temporary install file"
+    asroot rm -rf "$tmp"
+}
+
+uninstall_bin() {
+    asroot "$NEXTDNS_BIN" uninstall
+    asroot rm -f "$NEXTDNS_BIN"
+}
+
 install_rpm() {
     asroot curl -Ls https://repo.nextdns.io/nextdns.repo -o /etc/yum.repos.d/nextdns.repo &&
         asroot yum install -y nextdns
+}
+
+upgrade_rpm() {
+    asroot yum update -y nextdns
+}
+
+uninstall_rpm() {
+    asroot yum remove -y nextdns
 }
 
 install_zypper() {
@@ -190,6 +262,19 @@ install_zypper() {
         asroot zypper ar -f -r https://repo.nextdns.io/nextdns.repo nextdns
     fi
     asroot zypper refresh && asroot zypper in -y nextdns
+}
+
+upgrade_zypper() {
+    asroot zypper up nextdns
+}
+
+uninstall_zypper() {
+    asroot zypper remove -y nextdns
+    case $(ask_bool 'Do you want to remove the repository from the repositories list?' true) in
+    true)
+        asroot zypper removerepo nextdns
+        ;;
+    esac
 }
 
 install_deb() {
@@ -218,6 +303,16 @@ install_deb_keyring() {
         asroot chmod 0644 /etc/apt/keyrings/nextdns.gpg
 }
 
+upgrade_deb() {
+    install_deb_keyring &&
+        asroot apt-get update &&
+        asroot apt-get install -y nextdns
+}
+
+uninstall_deb() {
+    asroot apt-get remove -y nextdns
+}
+
 install_apk() {
     repo=https://repo.nextdns.io/apk
     asroot wget -O /etc/apk/keys/nextdns.pub https://repo.nextdns.io/nextdns.pub &&
@@ -226,9 +321,25 @@ install_apk() {
         asroot apk add nextdns
 }
 
+upgrade_apk() {
+    asroot apk update && asroot apk upgrade nextdns
+}
+
+uninstall_apk() {
+    asroot apk del nextdns
+}
+
 install_arch() {
     asroot pacman -Sy yay &&
         yay -Sy nextdns
+}
+
+upgrade_arch() {
+    yay -Suy nextdns
+}
+
+uninstall_arch() {
+    asroot pacman -R nextdns
 }
 
 install_merlin_path() {
@@ -239,6 +350,17 @@ install_merlin_path() {
 
 install_merlin() {
     if install_bin; then
+        install_merlin_path
+    fi
+}
+
+uninstall_merlin() {
+    uninstall_bin
+    rm -f /tmp/opt/sbin/nextdns
+}
+
+upgrade_merlin() {
+    if upgrade_bin; then
         install_merlin_path
     fi
 }
@@ -256,6 +378,15 @@ install_openwrt() {
         esac
     fi
     return $rt
+}
+
+upgrade_openwrt() {
+    opkg update &&
+        opkg upgrade nextdns
+}
+
+uninstall_openwrt() {
+    opkg remove nextdns
 }
 
 install_ddwrt() {
@@ -279,8 +410,26 @@ install_ddwrt() {
         install_bin
 }
 
+upgrade_ddwrt() {
+    upgrade_bin
+}
+
+uninstall_ddwrt() {
+    uninstall_bin
+    rm -rf /jffs/nextdns
+}
+
 install_brew() {
     silent_exec brew install nextdns/tap/nextdns
+}
+
+upgrade_brew() {
+    silent_exec brew upgrade nextdns/tap/nextdns
+    asroot "$NEXTDNS_BIN" install
+}
+
+uninstall_brew() {
+    silent_exec brew uninstall nextdns/tap/nextdns
 }
 
 install_freebsd() {
@@ -288,14 +437,44 @@ install_freebsd() {
     install_bin
 }
 
+upgrade_freebsd() {
+    # TODO: port upgrade
+    upgrade_bin
+}
+
+uninstall_freebsd() {
+    # TODO: port uninstall
+    uninstall_bin
+}
+
 install_pfsense() {
     # TODO: port install + UI
     install_bin
 }
 
+upgrade_pfsense() {
+    # TODO: port upgrade
+    upgrade_bin
+}
+
+uninstall_pfsense() {
+    # TODO: port uninstall
+    uninstall_bin
+}
+
 install_opnsense() {
     # TODO: port install + UI
     install_bin
+}
+
+upgrade_opnsense() {
+    # TODO: port upgrade
+    upgrade_bin
+}
+
+uninstall_opnsense() {
+    # TODO: port uninstall
+    uninstall_bin
 }
 
 ubios_install_source() {
@@ -313,11 +492,25 @@ install_ubios() {
     podman exec unifi-os apt-get install -y nextdns
 }
 
+upgrade_ubios() {
+    ubios_install_source
+    podman exec unifi-os apt-get install --only-upgrade -y nextdns
+}
+
+uninstall_ubios() {
+    podman exec unifi-os apt-get remove -y nextdns
+}
+
 install_ubios_snapshot() {
     branch=${INSTALL_RELEASE%/*}
     hash=${INSTALL_RELEASE#*/}
     url="https://snapshot.nextdns.io/${branch}/nextdns-${hash}_${GOOS}_${GOARCH}.tar.gz"
     podman exec unifi-os sh -c "curl -o- $url | tar Ozxf - nextdns > /usr/bin/nextdns; /usr/bin/nextdns install"
+}
+
+upgrade_ubios_snapshot() {
+    /data/nextdns uninstall
+    install_ubios_snapshot
 }
 
 install_type() {
