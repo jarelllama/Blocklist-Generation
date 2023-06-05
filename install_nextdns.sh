@@ -138,8 +138,8 @@ configure() {
         fi
         #if [ "$(ask_bool 'Setup as a router?' $router_default)" = "true" ]; then
             #add_arg setup-router true
-	    add_arg setup-router false
         #fi
+	add_arg setup-router false
         ;;
     esac
 
