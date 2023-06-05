@@ -14,4 +14,6 @@ jobs:
         run: |
           bash install_nextdns.sh ${{ secrets.NEXTDNS_PROFILE_ID }}
           
-      - run: dig google.com
+      - run: |
+          dig gookjsfkdjfgle.com
+          ping fsdjfkljfd.com
