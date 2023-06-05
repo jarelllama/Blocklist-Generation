@@ -1,1 +1,17 @@
+name: Build
+#run-name:
+on:
+  workflow_dispatch:
 
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+    
+      - name: Install and configure NextDNS
+        run: |
+          bash install_nextdns.sh ${{ secrets.NEXTDNS_PROFILE_ID }}
+          
+      - run: dig google.com
