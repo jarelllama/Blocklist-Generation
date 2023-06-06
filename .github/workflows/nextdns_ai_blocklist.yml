@@ -12,8 +12,8 @@ jobs:
     
       - name: Install and configure NextDNS
         run: |
-          bash install_nextdns.sh ${{ secrets.NEXTDNS_PROFILE_ID }}
+          curl ${{ secrets.NEXTDNS_LINK_IP }}
+          #bash install_nextdns.sh ${{ secrets.NEXTDNS_PROFILE_ID }}
           
       - run: |
-          dig gookjsfkdjfgle.com
-          ping fsdjfkljfd.com
+          dig @${{ vars.NEXTDNS_DNS1 }} gookjsfkdjfgle.com
