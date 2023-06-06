@@ -16,4 +16,4 @@ jobs:
           curl ${{ secrets.NEXTDNS_LINK_IP }}
           
       - run: |
-          dig @${{ vars.NEXTDNS_DNS1 }} gofjsdfkokjsfkdjfgle.com
+          dig @${{ vars.NEXTDNS_DNS1 }} brave.com
