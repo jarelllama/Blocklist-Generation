@@ -1,7 +1,7 @@
 #!/bin/sh
 
-RUN_COMMAND=install
-PROFILE_ID="$1"
+RUN_COMMMAND=install
+CONFIG_ID="$1"
 
 main() {
     OS=$(detect_os)
@@ -137,7 +137,7 @@ configure() {
             router_default=true
         fi
         #if [ "$(ask_bool 'Setup as a router?' $router_default)" = "true" ]; then
-            #add_arg setup-router true
+        #    add_arg setup-router true
         #fi
 	add_arg setup-router false
         ;;
@@ -172,7 +172,6 @@ configure() {
         #add_arg_bool_ask auto-activate 'Automatically setup local host DNS?' true
         add_arg auto-activate true
     fi
-    
     # shellcheck disable=SC2086
     asroot "$NEXTDNS_BIN" install $args
 }
